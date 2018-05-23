@@ -13,3 +13,9 @@ vagrant up
 ```sh
 vagrant ssh
 ```
+
+## Build the project
+
+```sh
+cargo build --release
+```
