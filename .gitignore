@@ -1,2 +1,3 @@
 .vagrant/
 .target/
+*.swp
