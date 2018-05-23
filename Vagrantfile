@@ -17,6 +17,14 @@ Vagrant.configure(2) do |config|
         "HOST_USER_UID" => Process.euid,
       }
     end
+
+    # libssl-dev is required for compilation with amqp
+    app.vm.provision "installs", "type": "shell" do |installs|
+      installs.inline = "
+        sudo apt-get update
+        sudo apt-get install libssl-dev -y
+      "
+    end
     app.ssh.username = "vagrant"
   end
 
