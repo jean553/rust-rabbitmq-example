@@ -7,6 +7,13 @@ ENV['VAGRANT_NO_PARALLEL'] = 'yes'
 ENV['VAGRANT_DEFAULT_PROVIDER'] = 'docker'
 Vagrant.configure(2) do |config|
 
+  config.vm.define "db" do |db|
+    db.vm.provider "docker" do |d|
+      d.image = "rabbitmq"
+      d.name = "#{PROJECT}_queue"
+    end
+  end
+
   config.ssh.insert_key = false
   config.vm.define "dev", primary: true do |app|
     app.vm.provider "docker" do |d|
@@ -16,6 +23,7 @@ Vagrant.configure(2) do |config|
       d.env = {
         "HOST_USER_UID" => Process.euid,
       }
+      d.link "#{PROJECT}_queue:queue"
     end
 
     # libssl-dev is required for compilation with amqp
@@ -26,12 +34,5 @@ Vagrant.configure(2) do |config|
       "
     end
     app.ssh.username = "vagrant"
-  end
-
-  config.vm.define "db" do |db|
-    db.vm.provider "docker" do |d|
-      d.image = "rabbitmq"
-      d.name = "#{PROJECT}_queue"
-    end
   end
 end
