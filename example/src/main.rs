@@ -1,26 +1,47 @@
 extern crate amqp;
 
-use amqp::Session;
+use amqp::{Session, Channel};
 
 use std::thread::spawn;
 use std::io::stdin;
 
 const QUEUE_URL: &str = "amqp://rust_rabbitmq_example_queue//";
 
-/// Simulates a consumer (worker). Continuously checks for messages from the queue.
-fn get_queue_messages() {
-}
-
-fn main() {
-
-    /* initializes the producer */
+/// TODO
+fn create_session_and_channel() -> (Session, Channel) {
 
     let mut session = Session::open_url(QUEUE_URL).unwrap();
     let mut _channel = session.open_channel(1).unwrap();
 
+    return (session, _channel);
+}
+
+/// Simulates a consumer (worker). Continuously checks for messages from the queue.
+fn get_queue_messages() {
+
+    /* initializes the producer */
+
+    let mut _initialisers = create_session_and_channel();
+
+    let _session = _initialisers.0;
+    let _channel = _initialisers.1;
+
+    /* worker of messages */
+
+}
+
+fn main() {
+
     /* initializes the consumer */
 
     spawn(|| { get_queue_messages() });
+
+    /* initializes the producer */
+
+    let initialisers = create_session_and_channel();
+
+    let mut session = initialisers.0;
+    let mut _channel = initialisers.1;
 
     /* user actions */
 
