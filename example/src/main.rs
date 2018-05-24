@@ -20,13 +20,13 @@ fn create_session_and_channel() -> (Session, Channel) {
     return (session, _channel);
 }
 
-/// Correctly terminates the given session and channel, sends a successfull reply code with close-ok message.
+/// Correctly terminates the given session and channel, sterminate a successfull reply code with close-ok message.
 ///
 /// Args:
 ///
 /// `session` - the session to close
 /// `channel` - the channel to close
-fn ends_session_and_channel(
+fn terminate_session_and_channel(
     mut session: Session,
     mut channel: Channel,
 ) {
@@ -55,9 +55,9 @@ fn get_queue_messages() {
 
     /* worker of messages */
 
-    /* correctly ends the session and channel */
+    /* correctly terminate the session and channel */
 
-    ends_session_and_channel(
+    terminate_session_and_channel(
         _session,
         _channel,
     );
@@ -93,7 +93,7 @@ fn main() {
        as we simply close the connection without any error
        from the producer side */
 
-    ends_session_and_channel(
+    terminate_session_and_channel(
         session,
         _channel,
     );
