@@ -1,6 +1,12 @@
 extern crate amqp;
 
-use amqp::{Session, Channel};
+use amqp::{
+    Session,
+    Channel,
+    Table,
+};
+
+use amqp::protocol::queue::DeclareOk;
 
 use std::thread::spawn;
 use std::io::stdin;
