@@ -17,13 +17,22 @@ const QUEUE_URL: &str = "amqp://rust_rabbitmq_example_queue//";
 ///
 /// Returns:
 ///
-/// (Session, Channel)
-fn create_session_and_channel() -> (Session, Channel) {
+/// (Session, Channel, Result)
+fn create_session_and_channel() -> (Session, Channel, DeclareOk) {
 
     let mut session = Session::open_url(QUEUE_URL).unwrap();
-    let mut _channel = session.open_channel(1).unwrap();
+    let mut channel = session.open_channel(1).unwrap();
+    let queue = channel.queue_declare(
+        "example-queue",
+        false,
+        true,
+        false,
+        false,
+        false,
+        Table::new()
+    ).unwrap();
 
-    return (session, _channel);
+    return (session, channel, queue);
 }
 
 /// Correctly terminates the given session and channel, sterminate a successfull reply code with close-ok message.
@@ -54,12 +63,13 @@ fn get_queue_messages() {
 
     /* initializes the producer */
 
-    let mut _initialisers = create_session_and_channel();
+    let mut _initializers = create_session_and_channel();
 
-    let _session = _initialisers.0;
-    let _channel = _initialisers.1;
+    let _session = _initializers.0;
+    let _channel = _initializers.1;
+    let _queue = _initializers.2;
 
-    /* worker of messages */
+    /* TODO: worker of messages */
 
     /* correctly terminate the session and channel */
 
@@ -77,10 +87,11 @@ fn main() {
 
     /* initializes the producer */
 
-    let initialisers = create_session_and_channel();
+    let initializers = create_session_and_channel();
 
-    let session = initialisers.0;
-    let mut _channel = initialisers.1;
+    let session = initializers.0;
+    let channel = initializers.1;
+    let _queue = initializers.2;
 
     /* user actions */
 
@@ -101,6 +112,6 @@ fn main() {
 
     terminate_session_and_channel(
         session,
-        _channel,
+        channel,
     );
 }
