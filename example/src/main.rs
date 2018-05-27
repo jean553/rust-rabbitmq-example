@@ -9,10 +9,15 @@ use amqp::{
 
 use amqp::protocol::queue::DeclareOk;
 
-use amqp::protocol::basic::BasicProperties;
+use amqp::protocol::basic::{
+    BasicProperties,
+    Deliver,
+};
 
 use std::thread::spawn;
 use std::io::stdin;
+
+use std::str;
 
 const QUEUE_URL: &str = "amqp://rust_rabbitmq_example_queue//";
 const QUEUE_NAME: &str = "example-queue";
@@ -74,16 +79,36 @@ fn get_queue_messages() {
     let mut _initializers = create_session_and_channel();
 
     let _session = _initializers.0;
-    let _channel = _initializers.1;
+    let mut channel = _initializers.1;
     let _queue = _initializers.2;
 
-    /* TODO: worker of messages */
+    /* TODO: explain parameters */
+
+    let _consumer = channel.basic_consume(
+        move |
+            _chan: &mut Channel,
+            _deliver: Deliver,
+            _headers: BasicProperties,
+            data: Vec<u8>,
+        | {
+            println!("Consumed message: {}", str::from_utf8(&data).unwrap());
+        },
+        QUEUE_NAME,
+        "",
+        false,
+        false,
+        false,
+        false,
+        Table::new(),
+    );
+
+    channel.start_consuming();
 
     /* correctly terminate the session and channel */
 
     terminate_session_and_channel(
         _session,
-        _channel,
+        channel,
     );
 }
 
@@ -109,12 +134,28 @@ fn main() {
         stdin().read_line(&mut input).expect("cannot get user input");
 
         let input = input.trim();
-        if input == "exit" {
+        let splitted: Vec<&str> = input.split(' ').collect();
+
+        let command: &str = match splitted.get(0) {
+            Some(value) => value,
+            None => { continue }
+        };
+
+        if command == "exit" {
             break;
         }
-        else if input == "push" {
+        else if command == "push" {
+
+            let message = match splitted.get(1) {
+                Some(value) => value,
+                None => {
+                    println!("Missing message.");
+                    continue;
+                }
+            };
 
             /* TODO: add parameters documentation */
+
             channel.basic_publish(
                 "",
                 QUEUE_NAME,
@@ -124,7 +165,7 @@ fn main() {
                     content_type: Some("text".to_string()),
                     ..Default::default()
                 },
-                "default message".to_string().into_bytes(),
+                message.to_string().into_bytes(),
             ).unwrap();
         }
     }
