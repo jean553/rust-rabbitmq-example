@@ -165,7 +165,7 @@ fn main() {
                     content_type: Some("text".to_string()),
                     ..Default::default()
                 },
-                "default message".to_string().into_bytes(),
+                message.to_string().into_bytes(),
             ).unwrap();
         }
     }
