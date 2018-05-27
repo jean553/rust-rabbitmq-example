@@ -15,6 +15,7 @@ const QUEUE_URL: &str = "amqp://rust_rabbitmq_example_queue//";
 const QUEUE_NAME: &str = "example-queue";
 
 /// Generates a session and a channel for a consumer or producer.
+/// Terminates the program if either the session, channel or queue can be created.
 ///
 /// Returns:
 ///
@@ -37,6 +38,7 @@ fn create_session_and_channel() -> (Session, Channel, DeclareOk) {
 }
 
 /// Correctly terminates the given session and channel, sterminate a successfull reply code with close-ok message.
+/// Terminates the program immediately if the channel cannot be closed.
 ///
 /// Args:
 ///
