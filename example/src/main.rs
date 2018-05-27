@@ -15,7 +15,10 @@ use amqp::protocol::basic::{
     Deliver,
 };
 
-use clap::App;
+use clap::{
+    App,
+    Arg,
+};
 
 use std::thread::spawn;
 use std::io::stdin;
@@ -78,12 +81,13 @@ fn terminate_session_and_channel(
 }
 
 /// Simulates a consumer (worker). Continuously checks for messages from the queue.
-fn get_queue_messages() {
-
-    /* initializes the producer */
+///
+/// Args:
+///
+/// `consumer_index` - the index of the consumer to use for logging
+fn get_queue_messages(consumer_index: usize) {
 
     let mut _initializers = create_session_and_channel();
-
     let _session = _initializers.0;
     let mut channel = _initializers.1;
     let _queue = _initializers.2;
@@ -98,13 +102,21 @@ fn get_queue_messages() {
             data: Vec<u8>,
         | {
             let message = str::from_utf8(&data).unwrap();
-            println!("Start handling message: {}", message);
+            println!(
+                "[Consumer {}] Start handling message: {}",
+                consumer_index,
+                message,
+            );
 
             /* simulate a working task */
             const TASK_SECONDS_DURATION: u64 = 3;
             thread::sleep(time::Duration::from_secs(TASK_SECONDS_DURATION));
 
-            println!("End handling message: {}", message);
+            println!(
+                "[Consumer {}] End handling message: {}",
+                consumer_index,
+                message,
+            );
         },
         QUEUE_NAME,
         "",
@@ -115,9 +127,11 @@ fn get_queue_messages() {
         Table::new(),
     );
 
+    println!("[Consumer {}] Started.", consumer_index);
+
     channel.start_consuming();
 
-    /* correctly terminate the session and channel */
+    /* FIXME: this part seems never executed... */
 
     terminate_session_and_channel(
         _session,
@@ -127,14 +141,27 @@ fn get_queue_messages() {
 
 fn main() {
 
-    App::new("rust-rabbitmq-example")
+    let matches = App::new("rust-rabbitmq-example")
         .version("0.0.1")
         .about("Simulate a RabbitMQ environment with consumer(s) and producer(s).")
+        .arg(Arg::with_name("consumers")
+             .short("c")
+             .long("consumers")
+             .help("Amount of consumers (default to 1)")
+             .takes_value(true)
+        )
         .get_matches();
 
-    /* initializes the consumer */
+    let consumers: usize = matches.value_of("consumers")
+        .unwrap_or("1")
+        .parse()
+        .unwrap();
 
-    spawn(|| { get_queue_messages() });
+    /* initializes the consumers */
+
+    for index in 0..consumers {
+        spawn(move || { get_queue_messages(index) });
+    }
 
     /* initializes the producer */
 
