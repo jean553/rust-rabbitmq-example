@@ -157,8 +157,6 @@ fn main() {
         .parse()
         .unwrap();
 
-    /* FIXME: for now the first consumer takes all the messages */
-
     for index in 0..consumers {
         spawn(move || { get_queue_messages(index) });
     }
