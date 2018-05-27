@@ -5,3 +5,4 @@ authors = ["Jean LELIEVRE <Jean.LELIEVRE@supinfo.com>"]
 
 [dependencies]
 amqp = "*"
+clap = "*"
