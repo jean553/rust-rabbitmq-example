@@ -1,4 +1,5 @@
 extern crate amqp;
+extern crate clap;
 
 use amqp::{
     Session,
@@ -14,11 +15,15 @@ use amqp::protocol::basic::{
     Deliver,
 };
 
-use std::thread;
+use clap::App;
+
 use std::thread::spawn;
-use std::time;
 use std::io::stdin;
-use std::str;
+use std::{
+    str,
+    time,
+    thread,
+};
 
 const QUEUE_URL: &str = "amqp://rust_rabbitmq_example_queue//";
 const QUEUE_NAME: &str = "example-queue";
@@ -121,6 +126,11 @@ fn get_queue_messages() {
 }
 
 fn main() {
+
+    App::new("rust-rabbitmq-example")
+        .version("0.0.1")
+        .about("Simulate a RabbitMQ environment with consumer(s) and producer(s).")
+        .get_matches();
 
     /* initializes the consumer */
 
