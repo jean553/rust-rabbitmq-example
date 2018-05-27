@@ -12,6 +12,7 @@ use std::thread::spawn;
 use std::io::stdin;
 
 const QUEUE_URL: &str = "amqp://rust_rabbitmq_example_queue//";
+const QUEUE_NAME: &str = "example-queue";
 
 /// Generates a session and a channel for a consumer or producer.
 ///
@@ -23,7 +24,7 @@ fn create_session_and_channel() -> (Session, Channel, DeclareOk) {
     let mut session = Session::open_url(QUEUE_URL).unwrap();
     let mut channel = session.open_channel(1).unwrap();
     let queue = channel.queue_declare(
-        "example-queue",
+        QUEUE_NAME,
         false,
         true,
         false,
