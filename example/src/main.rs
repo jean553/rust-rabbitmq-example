@@ -146,7 +146,16 @@ fn main() {
         }
         else if command == "push" {
 
+            let message = match splitted.get(1) {
+                Some(value) => value,
+                None => {
+                    println!("Missing message.");
+                    continue;
+                }
+            };
+
             /* TODO: add parameters documentation */
+
             channel.basic_publish(
                 "",
                 QUEUE_NAME,
