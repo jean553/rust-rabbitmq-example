@@ -7,8 +7,8 @@ ENV['VAGRANT_NO_PARALLEL'] = 'yes'
 ENV['VAGRANT_DEFAULT_PROVIDER'] = 'docker'
 Vagrant.configure(2) do |config|
 
-  config.vm.define "db" do |db|
-    db.vm.provider "docker" do |d|
+  config.vm.define "queue" do |queue|
+    queue.vm.provider "docker" do |d|
       d.image = "rabbitmq"
       d.name = "#{PROJECT}_queue"
     end
