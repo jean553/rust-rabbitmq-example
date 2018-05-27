@@ -14,9 +14,10 @@ use amqp::protocol::basic::{
     Deliver,
 };
 
+use std::thread;
 use std::thread::spawn;
+use std::time;
 use std::io::stdin;
-
 use std::str;
 
 const QUEUE_URL: &str = "amqp://rust_rabbitmq_example_queue//";
@@ -91,7 +92,14 @@ fn get_queue_messages() {
             _headers: BasicProperties,
             data: Vec<u8>,
         | {
-            println!("Consumed message: {}", str::from_utf8(&data).unwrap());
+            let message = str::from_utf8(&data).unwrap();
+            println!("Start handling message: {}", message);
+
+            /* simulate a working task */
+            const TASK_SECONDS_DURATION: u64 = 3;
+            thread::sleep(time::Duration::from_secs(TASK_SECONDS_DURATION));
+
+            println!("End handling message: {}", message);
         },
         QUEUE_NAME,
         "",
