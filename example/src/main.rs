@@ -157,21 +157,16 @@ fn main() {
         .parse()
         .unwrap();
 
-    /* initializes the consumers */
+    /* FIXME: for now the first consumer takes all the messages */
 
     for index in 0..consumers {
         spawn(move || { get_queue_messages(index) });
     }
 
-    /* initializes the producer */
-
     let initializers = create_session_and_channel();
-
     let session = initializers.0;
     let mut channel = initializers.1;
     let _queue = initializers.2;
-
-    /* user actions */
 
     loop {
 
@@ -214,10 +209,6 @@ fn main() {
             ).unwrap();
         }
     }
-
-    /* send a successfull reply-code with a close-ok message
-       as we simply close the connection without any error
-       from the producer side */
 
     terminate_session_and_channel(
         session,
