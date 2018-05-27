@@ -4,16 +4,21 @@ use amqp::{
     Session,
     Channel,
     Table,
+    Basic,
 };
 
 use amqp::protocol::queue::DeclareOk;
+
+use amqp::protocol::basic::BasicProperties;
 
 use std::thread::spawn;
 use std::io::stdin;
 
 const QUEUE_URL: &str = "amqp://rust_rabbitmq_example_queue//";
+const QUEUE_NAME: &str = "example-queue";
 
 /// Generates a session and a channel for a consumer or producer.
+/// Terminates the program if either the session, channel or queue can be created.
 ///
 /// Returns:
 ///
@@ -22,8 +27,10 @@ fn create_session_and_channel() -> (Session, Channel, DeclareOk) {
 
     let mut session = Session::open_url(QUEUE_URL).unwrap();
     let mut channel = session.open_channel(1).unwrap();
+
+    /* TODO: add parameters documentation */
     let queue = channel.queue_declare(
-        "example-queue",
+        QUEUE_NAME,
         false,
         true,
         false,
@@ -36,6 +43,7 @@ fn create_session_and_channel() -> (Session, Channel, DeclareOk) {
 }
 
 /// Correctly terminates the given session and channel, sterminate a successfull reply code with close-ok message.
+/// Terminates the program immediately if the channel cannot be closed.
 ///
 /// Args:
 ///
@@ -90,19 +98,34 @@ fn main() {
     let initializers = create_session_and_channel();
 
     let session = initializers.0;
-    let channel = initializers.1;
+    let mut channel = initializers.1;
     let _queue = initializers.2;
 
     /* user actions */
 
-    let mut input = String::new();
-
     loop {
+
+        let mut input = String::new();
         stdin().read_line(&mut input).expect("cannot get user input");
 
         let input = input.trim();
         if input == "exit" {
             break;
+        }
+        else if input == "push" {
+
+            /* TODO: add parameters documentation */
+            channel.basic_publish(
+                "",
+                QUEUE_NAME,
+                true,
+                false,
+                BasicProperties {
+                    content_type: Some("text".to_string()),
+                    ..Default::default()
+                },
+                "default message".to_string().into_bytes(),
+            ).unwrap();
         }
     }
 
