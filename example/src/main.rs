@@ -134,10 +134,17 @@ fn main() {
         stdin().read_line(&mut input).expect("cannot get user input");
 
         let input = input.trim();
-        if input == "exit" {
+        let splitted: Vec<&str> = input.split(' ').collect();
+
+        let command: &str = match splitted.get(0) {
+            Some(value) => value,
+            None => { continue }
+        };
+
+        if command == "exit" {
             break;
         }
-        else if input == "push" {
+        else if command == "push" {
 
             /* TODO: add parameters documentation */
             channel.basic_publish(
