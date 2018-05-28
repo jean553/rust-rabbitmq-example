@@ -19,3 +19,13 @@ vagrant ssh
 ```sh
 cargo build --release
 ```
+
+## Run the project
+
+```sh
+./target/release/example [OPTIONS]
+```
+
+Available options:
+ * `--consumers` - amount of consumers threads (ex: `--consumers 5`)
+ * `--help` - display help details
