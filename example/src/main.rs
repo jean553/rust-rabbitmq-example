@@ -85,7 +85,11 @@ fn terminate_session_and_channel(
 /// Args:
 ///
 /// `consumer_index` - the index of the consumer to use for logging
-fn get_queue_messages(consumer_index: usize) {
+/// `enable_ack` - enables acknowledgment of consumed messages
+fn get_queue_messages(
+    consumer_index: usize,
+    enable_ack: bool,
+) {
 
     let mut _initializers = create_session_and_channel();
     let _session = _initializers.0;
@@ -121,7 +125,7 @@ fn get_queue_messages(consumer_index: usize) {
         QUEUE_NAME,
         "",
         false,
-        false,
+        enable_ack,
         false,
         false,
         Table::new(),
@@ -150,6 +154,12 @@ fn main() {
              .help("Amount of consumers (default to 1)")
              .takes_value(true)
         )
+        .arg(Arg::with_name("enable_ack")
+             .short("e")
+             .long("enable-ack")
+             .help("Enable aknowledgment of consumed messages.")
+             .takes_value(true)
+        )
         .get_matches();
 
     let consumers: usize = matches.value_of("consumers")
@@ -157,8 +167,18 @@ fn main() {
         .parse()
         .unwrap();
 
+    let enable_ack: bool = matches.value_of("enable_ack")
+        .unwrap_or("false")
+        .parse()
+        .unwrap();
+
     for index in 0..consumers {
-        spawn(move || { get_queue_messages(index) });
+        spawn(move || {
+            get_queue_messages(
+                index,
+                enable_ack,
+            )
+        });
     }
 
     let initializers = create_session_and_channel();

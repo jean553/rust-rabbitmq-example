@@ -10,6 +10,7 @@ Simple Rust RabbitMQ usage example.
  - [Patterns](#patterns)
     * [Simple queue](#simple-queue)
     * [Competing consumers](#competing-consumers)
+    * [Message consumed acknowledgement](#message-consumed-acknowledgement)
 
 ## Start the project
 
@@ -62,4 +63,18 @@ To run competiting consumers, run the command with an option indicating the amou
 
 ```sh
 ./target/release/example --consumers 2
+```
+
+### Message consumed acknowledgement
+
+Consumed messages are kept within the queue as long as the queue does not get an aknowledgement
+from the consumer once the message has been consumed.
+
+Without aknowledgement, the message is the re-queued after being consumed.
+The message will be re-consumed when new consumers starts.
+
+In order to enable aknowledgement, use the `enable-ack` option:
+
+```sh
+./target/release/example --consumers 2 --enable-ack true
 ```
