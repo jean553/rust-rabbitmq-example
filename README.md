@@ -9,6 +9,7 @@ Simple Rust RabbitMQ usage example.
  - [Run the project](#run-the-project)
  - [Patterns](#patterns)
     * [Simple queue](#simple-queue)
+    * [Competing consumers](#competing-consumers)
 
 ## Start the project
 
@@ -49,4 +50,16 @@ To run a simple queue, simply run the tool without any option. This mode is the 
 
 ```sh
 ./target/release/example
+```
+
+### Competing consumers
+
+A single producer, one queue and multiple consumers (also called "workers").
+The producer pushes messages into the queue while the consumers get messages from the queue.
+Using this tool, the amount of consumers is an amount of internal threads that are started.
+
+To run competiting consumers, run the command with an option indicating the amount of consumers:
+
+```sh
+./target/release/example --consumers 2
 ```
