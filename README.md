@@ -11,6 +11,7 @@ Simple Rust RabbitMQ usage example.
     * [Simple queue](#simple-queue)
     * [Competing consumers](#competing-consumers)
     * [Message consumed acknowledgement](#message-consumed-acknowledgement)
+    * [Message durability](#message-durability)
 
 ## Start the project
 
@@ -38,6 +39,8 @@ cargo build --release
 
 Available options:
  * `--consumers` - amount of consumers threads (ex: `--consumers 5`)
+ * `--enable-ack` - enable consumed messages acknowledgement (removed from the queue only if explicitely aknowledged by a consumer)
+ * `--durable` - enable queued messages durability (copied on disk if the queue stops)
  * `--help` - display help details
 
 ## Patterns
@@ -77,4 +80,17 @@ In order to enable aknowledgement, use the `enable-ack` option:
 
 ```sh
 ./target/release/example --consumers 2 --enable-ack true
+```
+
+### Message durability
+
+When message durability is enabled, if the queue stops (because of failures or other),
+then the messages that have not been consumed are written on disk.
+
+They are then re-queued again if the queue is restarted.
+
+In order to enable messages durability:
+
+```sh
+./target/release/example --durable true
 ```
