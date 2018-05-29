@@ -88,15 +88,16 @@ fn terminate_session_and_channel(
 ///
 /// `consumer_index` - the index of the consumer to use for logging
 /// `enable_ack` - enables acknowledgment of consumed messages
+/// `durable_queue` - indicates if the queue messages are durable (if they are written on disk in case of queue failure/stop)
 fn get_queue_messages(
     consumer_index: usize,
     enable_ack: bool,
+    durable_queue: bool,
 ) {
 
-    let mut _initializers = create_session_and_channel();
+    let mut _initializers = create_session_and_channel(durable_queue);
     let _session = _initializers.0;
     let mut channel = _initializers.1;
-    let _queue = _initializers.2;
 
     /* TODO: explain parameters */
 
@@ -159,7 +160,13 @@ fn main() {
         .arg(Arg::with_name("enable_ack")
              .short("e")
              .long("enable-ack")
-             .help("Enable aknowledgment of consumed messages.")
+             .help("Enable aknowledgment of consumed messages (default to false)")
+             .takes_value(true)
+        )
+        .arg(Arg::with_name("durable_queue")
+             .short("d")
+             .long("durable-queue")
+             .help("Indicates if the queue stores messages on disk in case of failure (default to false)")
              .takes_value(true)
         )
         .get_matches();
@@ -174,19 +181,24 @@ fn main() {
         .parse()
         .unwrap();
 
+    let durable_queue: bool = matches.value_of("durable_queue")
+        .unwrap_or("false")
+        .parse()
+        .unwrap();
+
     for index in 0..consumers {
         spawn(move || {
             get_queue_messages(
                 index,
                 enable_ack,
+                durable_queue,
             )
         });
     }
 
-    let initializers = create_session_and_channel();
+    let initializers = create_session_and_channel(durable_queue);
     let session = initializers.0;
     let mut channel = initializers.1;
-    let _queue = initializers.2;
 
     loop {
 
