@@ -34,12 +34,12 @@ const QUEUE_NAME: &str = "example-queue";
 ///
 /// Args:
 ///
-/// `durable_queue` - Indicates if the queue messages are durable (if they are written on disk in case of queue failure/stop)
+/// `durable` - Indicates if the queue messages are durable (if they are written on disk in case of queue failure/stop)
 ///
 /// Returns:
 ///
 /// (Session, Channel, Result)
-fn create_session_and_channel(durable_queue: bool) -> (Session, Channel) {
+fn create_session_and_channel(durable: bool) -> (Session, Channel) {
 
     let mut session = Session::open_url(QUEUE_URL).unwrap();
     let mut channel = session.open_channel(1).unwrap();
@@ -48,7 +48,7 @@ fn create_session_and_channel(durable_queue: bool) -> (Session, Channel) {
     channel.queue_declare(
         QUEUE_NAME,
         false,
-        durable_queue,
+        durable,
         false,
         false,
         false,
@@ -88,14 +88,14 @@ fn terminate_session_and_channel(
 ///
 /// `consumer_index` - the index of the consumer to use for logging
 /// `enable_ack` - enables acknowledgment of consumed messages
-/// `durable_queue` - indicates if the queue messages are durable (if they are written on disk in case of queue failure/stop)
+/// `durable` - indicates if the queue messages are durable (if they are written on disk in case of queue failure/stop)
 fn get_queue_messages(
     consumer_index: usize,
     enable_ack: bool,
-    durable_queue: bool,
+    durable: bool,
 ) {
 
-    let mut _initializers = create_session_and_channel(durable_queue);
+    let mut _initializers = create_session_and_channel(durable);
     let _session = _initializers.0;
     let mut channel = _initializers.1;
 
@@ -163,9 +163,9 @@ fn main() {
              .help("Enable aknowledgment of consumed messages (default to false)")
              .takes_value(true)
         )
-        .arg(Arg::with_name("durable_queue")
+        .arg(Arg::with_name("durable")
              .short("d")
-             .long("durable-queue")
+             .long("durable")
              .help("Indicates if the queue stores messages on disk in case of failure (default to false)")
              .takes_value(true)
         )
@@ -181,7 +181,7 @@ fn main() {
         .parse()
         .unwrap();
 
-    let durable_queue: bool = matches.value_of("durable_queue")
+    let durable: bool = matches.value_of("durable")
         .unwrap_or("false")
         .parse()
         .unwrap();
@@ -191,12 +191,12 @@ fn main() {
             get_queue_messages(
                 index,
                 enable_ack,
-                durable_queue,
+                durable,
             )
         });
     }
 
-    let initializers = create_session_and_channel(durable_queue);
+    let initializers = create_session_and_channel(durable);
     let session = initializers.0;
     let mut channel = initializers.1;
 
