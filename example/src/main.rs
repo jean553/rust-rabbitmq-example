@@ -8,8 +8,6 @@ use amqp::{
     Basic,
 };
 
-use amqp::protocol::queue::DeclareOk;
-
 use amqp::protocol::basic::{
     BasicProperties,
     Deliver,
@@ -34,26 +32,30 @@ const QUEUE_NAME: &str = "example-queue";
 /// Generates a session and a channel for a consumer or producer.
 /// Terminates the program if either the session, channel or queue can be created.
 ///
+/// Args:
+///
+/// `durable` - Indicates if the queue messages are durable (if they are written on disk in case of queue failure/stop)
+///
 /// Returns:
 ///
 /// (Session, Channel, Result)
-fn create_session_and_channel() -> (Session, Channel, DeclareOk) {
+fn create_session_and_channel(durable: bool) -> (Session, Channel) {
 
     let mut session = Session::open_url(QUEUE_URL).unwrap();
     let mut channel = session.open_channel(1).unwrap();
 
     /* TODO: add parameters documentation */
-    let queue = channel.queue_declare(
+    channel.queue_declare(
         QUEUE_NAME,
         false,
-        true,
+        durable,
         false,
         false,
         false,
         Table::new()
     ).unwrap();
 
-    return (session, channel, queue);
+    return (session, channel);
 }
 
 /// Correctly terminates the given session and channel, sterminate a successfull reply code with close-ok message.
@@ -86,15 +88,16 @@ fn terminate_session_and_channel(
 ///
 /// `consumer_index` - the index of the consumer to use for logging
 /// `enable_ack` - enables acknowledgment of consumed messages
+/// `durable` - indicates if the queue messages are durable (if they are written on disk in case of queue failure/stop)
 fn get_queue_messages(
     consumer_index: usize,
     enable_ack: bool,
+    durable: bool,
 ) {
 
-    let mut _initializers = create_session_and_channel();
+    let mut _initializers = create_session_and_channel(durable);
     let _session = _initializers.0;
     let mut channel = _initializers.1;
-    let _queue = _initializers.2;
 
     /* TODO: explain parameters */
 
@@ -157,7 +160,13 @@ fn main() {
         .arg(Arg::with_name("enable_ack")
              .short("e")
              .long("enable-ack")
-             .help("Enable aknowledgment of consumed messages.")
+             .help("Enable aknowledgment of consumed messages (default to false)")
+             .takes_value(true)
+        )
+        .arg(Arg::with_name("durable")
+             .short("d")
+             .long("durable")
+             .help("Indicates if the queue stores messages on disk in case of failure (default to false)")
              .takes_value(true)
         )
         .get_matches();
@@ -172,19 +181,24 @@ fn main() {
         .parse()
         .unwrap();
 
+    let durable: bool = matches.value_of("durable")
+        .unwrap_or("false")
+        .parse()
+        .unwrap();
+
     for index in 0..consumers {
         spawn(move || {
             get_queue_messages(
                 index,
                 enable_ack,
+                durable,
             )
         });
     }
 
-    let initializers = create_session_and_channel();
+    let initializers = create_session_and_channel(durable);
     let session = initializers.0;
     let mut channel = initializers.1;
-    let _queue = initializers.2;
 
     loop {
 
