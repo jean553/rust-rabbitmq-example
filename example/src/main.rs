@@ -8,8 +8,6 @@ use amqp::{
     Basic,
 };
 
-use amqp::protocol::queue::DeclareOk;
-
 use amqp::protocol::basic::{
     BasicProperties,
     Deliver,
