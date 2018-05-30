@@ -60,6 +60,18 @@ push c
 EOF
 ```
 
+Each message is consumed one by one.
+
+```sh
+[Consumer 0] Started.
+[Consumer 0] Start handling message: a
+[Consumer 0] Terminate handling message: a
+[Consumer 0] Start handling message: b
+[Consumer 0] Terminate handling message: b
+[Consumer 0] Start handling message: c
+[Consumer 0] Terminate handling message: c
+```
+
 ### Competing consumers
 
 A single producer, one queue and multiple consumers (also called "workers").
