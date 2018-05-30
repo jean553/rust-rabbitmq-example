@@ -53,7 +53,11 @@ The producer pushes messages into the queue while the consumer get messages from
 To run a simple queue, simply run the tool without any option. This mode is the default one.
 
 ```sh
-./target/release/example
+./target/release/example << EOF
+push a
+push b
+push c
+EOF
 ```
 
 ### Competing consumers
