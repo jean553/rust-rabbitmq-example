@@ -120,7 +120,7 @@ fn get_queue_messages(
             thread::sleep(time::Duration::from_secs(TASK_SECONDS_DURATION));
 
             println!(
-                "[Consumer {}] End handling message: {}",
+                "[Consumer {}] Terminate handling message: {}",
                 consumer_index,
                 message,
             );
