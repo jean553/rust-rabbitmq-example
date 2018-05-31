@@ -81,7 +81,25 @@ Using this tool, the amount of consumers is an amount of internal threads that a
 To run competiting consumers, run the command with an option indicating the amount of consumers:
 
 ```sh
-./target/release/example --consumers 2
+./target/release/example --consumers 3 << EOF
+push a
+push b
+push c
+EOF
+```
+
+Each message is consumed at the same time, one by consumer.
+
+```sh
+[Consumer 0] Started.
+[Consumer 1] Started.
+[Consumer 2] Started.
+[Consumer 2] Start handling message: a
+[Consumer 0] Start handling message: b
+[Consumer 1] Start handling message: c
+[Consumer 1] Terminate handling message: c
+[Consumer 2] Terminate handling message: a
+[Consumer 0] Terminate handling message: b
 ```
 
 ### Message consumed acknowledgement
