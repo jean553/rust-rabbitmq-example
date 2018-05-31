@@ -116,6 +116,34 @@ In order to enable aknowledgement, use the `enable-ack` option:
 ./target/release/example --consumers 2 --enable-ack true
 ```
 
+Without acknowledgement enabled, the message is consumed everytime a new consumer is connected:
+
+```sh
+./target/release/example
+[Consumer 0] Started.
+> push a
+[Consumer 0] Start handling message: a
+[Consumer 0] End handling message: a
+
+./target/release/example
+[Consumer 0] Started.
+[Consumer 0] Start handling message: a
+[Consumer 0] End handling message: a
+```
+
+This does not happen when aknowledgement is enabled:
+
+```sh
+./target/release/example --enable-ack true
+[Consumer 0] Started.
+> push a
+[Consumer 0] Start handling message: a
+[Consumer 0] End handling message: a
+
+./target/release/example
+[Consumer 0] Started.
+```
+
 ### Message durability
 
 When message durability is enabled, if the queue stops (because of failures or other),
