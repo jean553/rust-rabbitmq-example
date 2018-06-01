@@ -12,6 +12,7 @@ Simple Rust RabbitMQ usage example.
     * [Competing consumers](#competing-consumers)
     * [Message consumed acknowledgement](#message-consumed-acknowledgement)
     * [Message durability](#message-durability)
+    * [Prefetch count](#prefetch-count)
 
 ## Start the project
 
@@ -155,4 +156,12 @@ In order to enable messages durability:
 
 ```sh
 ./target/release/example --durable true
+```
+
+### Prefetch count
+
+Indicates how many unknowledged messages one consumer can consumes until it refuses new messages.
+
+```sh
+./target/release/example --prefetch-count 2 --enable-ack true --consumers 2
 ```

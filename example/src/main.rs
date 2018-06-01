@@ -35,11 +35,15 @@ const QUEUE_NAME: &str = "example-queue";
 /// Args:
 ///
 /// `durable` - Indicates if the queue messages are durable (if they are written on disk in case of queue failure/stop)
+/// `prefetch_count` - maximum non aknowledged messages a consumer can consume before refusing new messages
 ///
 /// Returns:
 ///
-/// (Session, Channel, Result)
-fn create_session_and_channel(durable: bool) -> (Session, Channel) {
+/// (Session, Channel)
+fn create_session_and_channel(
+    durable: bool,
+    prefetch_count: u16,
+) -> (Session, Channel) {
 
     let mut session = Session::open_url(QUEUE_URL).unwrap();
     let mut channel = session.open_channel(1).unwrap();
@@ -54,6 +58,10 @@ fn create_session_and_channel(durable: bool) -> (Session, Channel) {
         false,
         Table::new()
     ).unwrap();
+
+    if prefetch_count != 0 {
+        channel.basic_prefetch(prefetch_count).unwrap();
+    }
 
     return (session, channel);
 }
@@ -89,13 +97,18 @@ fn terminate_session_and_channel(
 /// `consumer_index` - the index of the consumer to use for logging
 /// `enable_ack` - enables acknowledgment of consumed messages
 /// `durable` - indicates if the queue messages are durable (if they are written on disk in case of queue failure/stop)
+/// `prefetch_count` - maximum non aknowledged messages a consumer can consume before refusing new messages
 fn get_queue_messages(
     consumer_index: usize,
     enable_ack: bool,
     durable: bool,
+    prefetch_count: u16,
 ) {
 
-    let mut _initializers = create_session_and_channel(durable);
+    let mut _initializers = create_session_and_channel(
+        durable,
+        prefetch_count,
+    );
     let _session = _initializers.0;
     let mut channel = _initializers.1;
 
@@ -169,6 +182,12 @@ fn main() {
              .help("Indicates if the queue stores messages on disk in case of failure (default to false)")
              .takes_value(true)
         )
+        .arg(Arg::with_name("prefetch_count")
+             .short("p")
+             .long("prefetch-count")
+             .help("Indicates the maximum messages amount a worker can consume until it acknowledges them (basic_qos, requires acknowledgment to be enabled).")
+             .takes_value(true)
+        )
         .get_matches();
 
     let consumers: usize = matches.value_of("consumers")
@@ -186,17 +205,26 @@ fn main() {
         .parse()
         .unwrap();
 
+    let prefetch_count: u16 = matches.value_of("prefetch_count")
+        .unwrap_or("0")
+        .parse()
+        .unwrap();
+
     for index in 0..consumers {
         spawn(move || {
             get_queue_messages(
                 index,
                 enable_ack,
                 durable,
+                prefetch_count,
             )
         });
     }
 
-    let initializers = create_session_and_channel(durable);
+    let initializers = create_session_and_channel(
+        durable,
+        prefetch_count,
+    );
     let session = initializers.0;
     let mut channel = initializers.1;
 
