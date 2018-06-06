@@ -7,6 +7,7 @@ Simple Rust RabbitMQ usage example.
  - [Connect to the container](#connect-to-the-container)
  - [Build the project](#build-the-project)
  - [Run the project](#run-the-project)
+ - [Enable management HTTP API](#enable-management-http-api)
  - [Patterns](#patterns)
     * [Simple queue](#simple-queue)
     * [Competing consumers](#competing-consumers)
@@ -43,6 +44,33 @@ Available options:
  * `--enable-ack` - enable consumed messages acknowledgement (removed from the queue only if explicitely aknowledged by a consumer)
  * `--durable` - enable queued messages durability (copied on disk if the queue stops)
  * `--help` - display help details
+
+## Enable management HTTP API
+
+A HTTP API is available on RabbitMQ in order to monitor the queue.
+This feature is not enabled by default. Follow the following steps to enable it.
+
+Connect to the RabbitMQ container:
+
+```sh
+docker exec -it rust_rabbitmq_example_queue /bin/bash
+```
+
+Enable the HTTP API:
+
+```sh
+rabbitmq-plugins enable rabbitmq_management
+```
+
+Outside of the container, check the API is working:
+
+```sh
+curl -u guest:guest http://localhost:8080/api/vhosts
+```
+
+The authorization header must contain a Basic Auth token,
+representing the base64 digest of "guest:guest",
+so we add an `-u` value.
 
 ## Patterns
 
