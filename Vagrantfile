@@ -12,6 +12,7 @@ Vagrant.configure(2) do |config|
       d.image = "rabbitmq"
       d.name = "#{PROJECT}_queue"
     end
+    queue.vm.network "forwarded_port", guest: 15672, host: 8080
   end
 
   config.ssh.insert_key = false
