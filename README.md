@@ -14,6 +14,7 @@ Simple Rust RabbitMQ usage example.
     * [Message consumed acknowledgement](#message-consumed-acknowledgement)
     * [Message durability](#message-durability)
     * [Prefetch count](#prefetch-count)
+ - [Delete all queue messages](#delete-all-queue-messages)
 
 ## Start the project
 
@@ -192,4 +193,13 @@ Indicates how many unknowledged messages one consumer can consumes until it refu
 
 ```sh
 ./target/release/example --prefetch-count 2 --enable-ack true --consumers 2
+```
+
+## Delete all queue messages
+
+In order to remove all the messages from the queue,
+connect into the queue container and execute the following command:
+
+```sh
+rabbitmqctl purge_queue example_queue
 ```
