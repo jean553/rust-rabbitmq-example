@@ -174,6 +174,16 @@ This does not happen when aknowledgement is enabled:
 [Consumer 0] Started.
 ```
 
+This can be verified using the management HTTP API:
+
+```sh
+curl -i -u guest:guest http://localhost:8080/api/vhosts
+```
+
+If acknowledgement is enabled, `messages_stats/messages` is equal to 0 when all messages have been consumed.
+If acknowledgement is not enabled, `messages_stats/messages` is equal to the pushed amount of messages,
+no matter if they have been consumed or not.
+
 ### Message durability
 
 When message durability is enabled, if the queue stops (because of failures or other),
