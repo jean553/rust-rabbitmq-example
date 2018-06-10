@@ -26,7 +26,7 @@ use std::{
     thread,
 };
 
-const QUEUE_URL: &str = "amqp://rust_rabbitmq_example_queue//";
+const QUEUE_URL: &str = "amqp://rust_rabbitmq_example_queue_1//";
 const QUEUE_NAME: &str = "example-queue";
 
 /// Generates a session and a channel for a consumer or producer.

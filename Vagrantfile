@@ -7,12 +7,20 @@ ENV['VAGRANT_NO_PARALLEL'] = 'yes'
 ENV['VAGRANT_DEFAULT_PROVIDER'] = 'docker'
 Vagrant.configure(2) do |config|
 
-  config.vm.define "queue" do |queue|
+  config.vm.define "queue_1" do |queue|
     queue.vm.provider "docker" do |d|
       d.image = "rabbitmq"
-      d.name = "#{PROJECT}_queue"
+      d.name = "#{PROJECT}_queue_1"
     end
     queue.vm.network "forwarded_port", guest: 15672, host: 8080
+  end
+
+  config.vm.define "queue_2" do |queue|
+    queue.vm.provider "docker" do |d|
+      d.image = "rabbitmq"
+      d.name = "#{PROJECT}_queue_2"
+    end
+    queue.vm.network "forwarded_port", guest: 15672, host: 8081
   end
 
   config.ssh.insert_key = false
@@ -24,7 +32,8 @@ Vagrant.configure(2) do |config|
       d.env = {
         "HOST_USER_UID" => Process.euid,
       }
-      d.link "#{PROJECT}_queue:queue"
+      d.link "#{PROJECT}_queue_1:queue_1"
+      d.link "#{PROJECT}_queue_2:queue_2"
     end
 
     # libssl-dev is required for compilation with amqp
