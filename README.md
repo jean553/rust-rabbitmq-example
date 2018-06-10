@@ -14,6 +14,8 @@ Simple Rust RabbitMQ usage example.
     * [Message consumed acknowledgement](#message-consumed-acknowledgement)
     * [Message durability](#message-durability)
     * [Prefetch count](#prefetch-count)
+ - [Exchanges](#exchanges)
+    * [Fanout](#fanout)
  - [Delete all queue messages](#delete-all-queue-messages)
 
 ## Start the project
@@ -204,6 +206,16 @@ Indicates how many unknowledged messages one consumer can consumes until it refu
 ```sh
 ./target/release/example --prefetch-count 2 --enable-ack true --consumers 2
 ```
+
+## Exchanges
+
+An exchange is setup between the producer and the queue(s).
+It is used to forward message to one specific queue or to all queues.
+
+### Fanout
+
+The producer sends messages to the fanout exchange.
+The fanout exchange forward to all queues.
 
 ## Delete all queue messages
 
