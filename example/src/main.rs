@@ -188,6 +188,12 @@ fn main() {
              .help("Indicates the maximum messages amount a worker can consume until it acknowledges them (basic_qos, requires acknowledgment to be enabled).")
              .takes_value(true)
         )
+        .arg(Arg::with_name("fanout")
+             .short("f")
+             .long("fanout")
+             .help("If true, an exchange is added to handle messages and forward them into two different queues.")
+             .takes_value(true)
+        )
         .get_matches();
 
     let consumers: usize = matches.value_of("consumers")
@@ -207,6 +213,11 @@ fn main() {
 
     let prefetch_count: u16 = matches.value_of("prefetch_count")
         .unwrap_or("0")
+        .parse()
+        .unwrap();
+
+    let fanout: bool = matches.value_of("fanout")
+        .unwrap_or("false")
         .parse()
         .unwrap();
 
