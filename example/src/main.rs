@@ -27,7 +27,7 @@ use std::{
 };
 
 const QUEUE_URL: &str = "amqp://rust_rabbitmq_example_queue_1//";
-const QUEUE_NAME: &str = "example-queue";
+const FIRST_QUEUE_NAME: &str = "queue-1";
 
 /// Generates a session and a channel for a consumer or producer.
 /// Terminates the program if either the session, channel or queue can be created.
@@ -50,7 +50,7 @@ fn create_session_and_channel(
 
     /* TODO: add parameters documentation */
     channel.queue_declare(
-        QUEUE_NAME,
+        FIRST_QUEUE_NAME,
         false,
         durable,
         false,
@@ -138,7 +138,7 @@ fn get_queue_messages(
                 message,
             );
         },
-        QUEUE_NAME,
+        FIRST_QUEUE_NAME,
         "",
         false,
         enable_ack,
@@ -269,7 +269,7 @@ fn main() {
 
             channel.basic_publish(
                 "",
-                QUEUE_NAME,
+                FIRST_QUEUE_NAME,
                 true,
                 false,
                 BasicProperties {
