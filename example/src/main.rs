@@ -31,6 +31,29 @@ const FIRST_QUEUE_NAME: &str = "queue-1";
 const SECOND_QUEUE_NAME: &str = "queue-2";
 const FANOUT_EXCHANGE_NAME: &str = "fanout-exchange";
 
+/// Refactor of the queue creation process.
+///
+/// Args:
+///
+/// `queue_name` - the name of the queue to declare
+/// `durable` - indicates if the queue is durable
+fn declare_queue(
+    channel: &mut Channel,
+    queue_name: &str,
+    durable: bool,
+) {
+    /* TODO: add parameters documentation */
+    channel.queue_declare(
+        queue_name,
+        false,
+        durable,
+        false,
+        false,
+        false,
+        Table::new()
+    ).unwrap();
+}
+
 /// Generates a session and a channel for a consumer or producer.
 /// Terminates the program if either the session, channel or queue can be created.
 ///
@@ -49,27 +72,6 @@ fn create_session_and_channel(
 
     let mut session = Session::open_url(QUEUE_URL).unwrap();
     let mut channel = session.open_channel(1).unwrap();
-
-    /* TODO: add parameters documentation */
-    channel.queue_declare(
-        FIRST_QUEUE_NAME,
-        false,
-        durable,
-        false,
-        false,
-        false,
-        Table::new()
-    ).unwrap();
-
-    channel.queue_declare(
-        SECOND_QUEUE_NAME,
-        false,
-        durable,
-        false,
-        false,
-        false,
-        Table::new()
-    ).unwrap();
 
     if prefetch_count != 0 {
         channel.basic_prefetch(prefetch_count).unwrap();
@@ -111,12 +113,14 @@ fn terminate_session_and_channel(
 /// `enable_ack` - enables acknowledgment of consumed messages
 /// `durable` - indicates if the queue messages are durable (if they are written on disk in case of queue failure/stop)
 /// `prefetch_count` - maximum non aknowledged messages a consumer can consume before refusing new messages
+/// `fanout` - indicates if fanout is enabled: creates an exchange
 fn get_queue_messages(
     queue_name: &'static str,
     consumer_index: usize,
     enable_ack: bool,
     durable: bool,
     prefetch_count: u16,
+    fanout: bool,
 ) {
 
     let mut _initializers = create_session_and_channel(
@@ -126,9 +130,29 @@ fn get_queue_messages(
     let _session = _initializers.0;
     let mut channel = _initializers.1;
 
+    declare_queue(
+        &mut channel,
+        FIRST_QUEUE_NAME,
+        durable,
+    );
+
+    if fanout {
+
+        channel.exchange_declare(
+            FANOUT_EXCHANGE_NAME,
+            "fanout",
+            false,
+            true,
+            false,
+            false,
+            false,
+            Table::new(),
+        ).unwrap();
+    }
+
     /* TODO: explain parameters */
 
-    let _consumer = channel.basic_consume(
+    channel.basic_consume(
         move |
             _chan: &mut Channel,
             _deliver: Deliver,
@@ -161,9 +185,13 @@ fn get_queue_messages(
         false,
         false,
         Table::new(),
-    );
+    ).unwrap();
 
-    println!("[Consumer {}] Started.", consumer_index);
+    println!(
+        "[{} Consumer {}] Started.",
+        queue_name,
+        consumer_index,
+    );
 
     channel.start_consuming();
 
@@ -245,6 +273,7 @@ fn main() {
                 enable_ack,
                 durable,
                 prefetch_count,
+                fanout,
             )
         });
     }
@@ -257,6 +286,7 @@ fn main() {
                 enable_ack,
                 durable,
                 prefetch_count,
+                fanout,
             )
         });
     }
