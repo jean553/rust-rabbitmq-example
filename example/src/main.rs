@@ -29,6 +29,7 @@ use std::{
 const QUEUE_URL: &str = "amqp://rust_rabbitmq_example_queue_1//";
 const FIRST_QUEUE_NAME: &str = "queue-1";
 const SECOND_QUEUE_NAME: &str = "queue-2";
+const FANOUT_EXCHANGE_NAME: &str = "fanout-exchange";
 
 /// Generates a session and a channel for a consumer or producer.
 /// Terminates the program if either the session, channel or queue can be created.
@@ -267,6 +268,25 @@ fn main() {
     let session = initializers.0;
     let mut channel = initializers.1;
 
+    let mut destination = FIRST_QUEUE_NAME;
+
+    if fanout {
+
+        /* TODO: add arguments explanation */
+        channel.exchange_declare(
+            FANOUT_EXCHANGE_NAME,
+            "fanout",
+            false,
+            true,
+            false,
+            false,
+            false,
+            Table::new(),
+        ).unwrap();
+
+        destination = FANOUT_EXCHANGE_NAME;
+    }
+
     loop {
 
         let mut input = String::new();
@@ -297,7 +317,7 @@ fn main() {
 
             channel.basic_publish(
                 "",
-                FIRST_QUEUE_NAME,
+                destination,
                 true,
                 false,
                 BasicProperties {
