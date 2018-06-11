@@ -27,7 +27,32 @@ use std::{
 };
 
 const QUEUE_URL: &str = "amqp://rust_rabbitmq_example_queue_1//";
-const QUEUE_NAME: &str = "example-queue";
+const FIRST_QUEUE_NAME: &str = "queue-1";
+const SECOND_QUEUE_NAME: &str = "queue-2";
+const FANOUT_EXCHANGE_NAME: &str = "fanout-exchange";
+
+/// Refactor of the queue creation process.
+///
+/// Args:
+///
+/// `queue_name` - the name of the queue to declare
+/// `durable` - indicates if the queue is durable
+fn declare_queue(
+    channel: &mut Channel,
+    queue_name: &str,
+    durable: bool,
+) {
+    /* TODO: add parameters documentation */
+    channel.queue_declare(
+        queue_name,
+        false,
+        durable,
+        false,
+        false,
+        false,
+        Table::new()
+    ).unwrap();
+}
 
 /// Generates a session and a channel for a consumer or producer.
 /// Terminates the program if either the session, channel or queue can be created.
@@ -47,17 +72,6 @@ fn create_session_and_channel(
 
     let mut session = Session::open_url(QUEUE_URL).unwrap();
     let mut channel = session.open_channel(1).unwrap();
-
-    /* TODO: add parameters documentation */
-    channel.queue_declare(
-        QUEUE_NAME,
-        false,
-        durable,
-        false,
-        false,
-        false,
-        Table::new()
-    ).unwrap();
 
     if prefetch_count != 0 {
         channel.basic_prefetch(prefetch_count).unwrap();
@@ -94,15 +108,19 @@ fn terminate_session_and_channel(
 ///
 /// Args:
 ///
+/// `queue_name` - the name of the concerned queue
 /// `consumer_index` - the index of the consumer to use for logging
 /// `enable_ack` - enables acknowledgment of consumed messages
 /// `durable` - indicates if the queue messages are durable (if they are written on disk in case of queue failure/stop)
 /// `prefetch_count` - maximum non aknowledged messages a consumer can consume before refusing new messages
+/// `fanout` - indicates if fanout is enabled: creates an exchange
 fn get_queue_messages(
+    queue_name: &'static str,
     consumer_index: usize,
     enable_ack: bool,
     durable: bool,
     prefetch_count: u16,
+    fanout: bool,
 ) {
 
     let mut _initializers = create_session_and_channel(
@@ -112,9 +130,41 @@ fn get_queue_messages(
     let _session = _initializers.0;
     let mut channel = _initializers.1;
 
+    let mut destination = queue_name;
+
+    declare_queue(
+        &mut channel,
+        queue_name,
+        durable,
+    );
+
+    if fanout {
+
+        channel.exchange_declare(
+            FANOUT_EXCHANGE_NAME,
+            "fanout",
+            false,
+            true,
+            false,
+            false,
+            false,
+            Table::new(),
+        ).unwrap();
+
+        channel.queue_bind(
+            queue_name,
+            FANOUT_EXCHANGE_NAME,
+            "",
+            false,
+            Table::new(),
+        ).unwrap();
+
+        destination = FANOUT_EXCHANGE_NAME;
+    }
+
     /* TODO: explain parameters */
 
-    let _consumer = channel.basic_consume(
+    channel.basic_consume(
         move |
             _chan: &mut Channel,
             _deliver: Deliver,
@@ -123,7 +173,8 @@ fn get_queue_messages(
         | {
             let message = str::from_utf8(&data).unwrap();
             println!(
-                "[Consumer {}] Start handling message: {}",
+                "[{} Consumer {}] Start handling message: {}",
+                queue_name,
                 consumer_index,
                 message,
             );
@@ -133,21 +184,26 @@ fn get_queue_messages(
             thread::sleep(time::Duration::from_secs(TASK_SECONDS_DURATION));
 
             println!(
-                "[Consumer {}] Terminate handling message: {}",
+                "[{} Consumer {}] Terminate handling message: {}",
+                queue_name,
                 consumer_index,
                 message,
             );
         },
-        QUEUE_NAME,
+        destination,
         "",
         false,
         enable_ack,
         false,
         false,
         Table::new(),
-    );
+    ).unwrap();
 
-    println!("[Consumer {}] Started.", consumer_index);
+    println!(
+        "[{} Consumer {}] Started.",
+        queue_name,
+        consumer_index,
+    );
 
     channel.start_consuming();
 
@@ -188,6 +244,12 @@ fn main() {
              .help("Indicates the maximum messages amount a worker can consume until it acknowledges them (basic_qos, requires acknowledgment to be enabled).")
              .takes_value(true)
         )
+        .arg(Arg::with_name("fanout")
+             .short("f")
+             .long("fanout")
+             .help("If true, an exchange is added to handle messages and forward them into two different queues.")
+             .takes_value(true)
+        )
         .get_matches();
 
     let consumers: usize = matches.value_of("consumers")
@@ -210,13 +272,33 @@ fn main() {
         .parse()
         .unwrap();
 
+    let fanout: bool = matches.value_of("fanout")
+        .unwrap_or("false")
+        .parse()
+        .unwrap();
+
     for index in 0..consumers {
         spawn(move || {
             get_queue_messages(
+                FIRST_QUEUE_NAME,
                 index,
                 enable_ack,
                 durable,
                 prefetch_count,
+                fanout,
+            )
+        });
+    }
+
+    for index in 0..consumers {
+        spawn(move || {
+            get_queue_messages(
+                SECOND_QUEUE_NAME,
+                index,
+                enable_ack,
+                durable,
+                prefetch_count,
+                fanout,
             )
         });
     }
@@ -227,6 +309,37 @@ fn main() {
     );
     let session = initializers.0;
     let mut channel = initializers.1;
+
+    let mut destination = FIRST_QUEUE_NAME;
+
+    declare_queue(
+        &mut channel,
+        FIRST_QUEUE_NAME,
+        durable,
+    );
+
+    if fanout {
+
+        /* TODO: add arguments explanation */
+        channel.exchange_declare(
+            FANOUT_EXCHANGE_NAME,
+            "fanout",
+            false,
+            true,
+            false,
+            false,
+            false,
+            Table::new(),
+        ).unwrap();
+
+        declare_queue(
+            &mut channel,
+            SECOND_QUEUE_NAME,
+            durable,
+        );
+
+        destination = FANOUT_EXCHANGE_NAME;
+    }
 
     loop {
 
@@ -258,7 +371,7 @@ fn main() {
 
             channel.basic_publish(
                 "",
-                QUEUE_NAME,
+                destination,
                 true,
                 false,
                 BasicProperties {
