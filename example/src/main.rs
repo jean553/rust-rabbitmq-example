@@ -105,11 +105,13 @@ fn terminate_session_and_channel(
 ///
 /// Args:
 ///
+/// `queue_name` - the name of the concerned queue
 /// `consumer_index` - the index of the consumer to use for logging
 /// `enable_ack` - enables acknowledgment of consumed messages
 /// `durable` - indicates if the queue messages are durable (if they are written on disk in case of queue failure/stop)
 /// `prefetch_count` - maximum non aknowledged messages a consumer can consume before refusing new messages
 fn get_queue_messages(
+    queue_name: &'static str,
     consumer_index: usize,
     enable_ack: bool,
     durable: bool,
@@ -134,7 +136,8 @@ fn get_queue_messages(
         | {
             let message = str::from_utf8(&data).unwrap();
             println!(
-                "[Consumer {}] Start handling message: {}",
+                "[{} Consumer {}] Start handling message: {}",
+                queue_name,
                 consumer_index,
                 message,
             );
@@ -144,12 +147,13 @@ fn get_queue_messages(
             thread::sleep(time::Duration::from_secs(TASK_SECONDS_DURATION));
 
             println!(
-                "[Consumer {}] Terminate handling message: {}",
+                "[{} Consumer {}] Terminate handling message: {}",
+                queue_name,
                 consumer_index,
                 message,
             );
         },
-        FIRST_QUEUE_NAME,
+        queue_name,
         "",
         false,
         enable_ack,
@@ -235,6 +239,19 @@ fn main() {
     for index in 0..consumers {
         spawn(move || {
             get_queue_messages(
+                FIRST_QUEUE_NAME,
+                index,
+                enable_ack,
+                durable,
+                prefetch_count,
+            )
+        });
+    }
+
+    for index in 0..consumers {
+        spawn(move || {
+            get_queue_messages(
+                SECOND_QUEUE_NAME,
                 index,
                 enable_ack,
                 durable,
