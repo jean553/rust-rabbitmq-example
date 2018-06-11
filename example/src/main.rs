@@ -130,9 +130,11 @@ fn get_queue_messages(
     let _session = _initializers.0;
     let mut channel = _initializers.1;
 
+    let mut destination = queue_name;
+
     declare_queue(
         &mut channel,
-        FIRST_QUEUE_NAME,
+        queue_name,
         durable,
     );
 
@@ -148,6 +150,16 @@ fn get_queue_messages(
             false,
             Table::new(),
         ).unwrap();
+
+        channel.queue_bind(
+            queue_name,
+            FANOUT_EXCHANGE_NAME,
+            "",
+            false,
+            Table::new(),
+        ).unwrap();
+
+        destination = FANOUT_EXCHANGE_NAME;
     }
 
     /* TODO: explain parameters */
@@ -178,7 +190,7 @@ fn get_queue_messages(
                 message,
             );
         },
-        queue_name,
+        destination,
         "",
         false,
         enable_ack,
@@ -300,6 +312,12 @@ fn main() {
 
     let mut destination = FIRST_QUEUE_NAME;
 
+    declare_queue(
+        &mut channel,
+        FIRST_QUEUE_NAME,
+        durable,
+    );
+
     if fanout {
 
         /* TODO: add arguments explanation */
@@ -313,6 +331,12 @@ fn main() {
             false,
             Table::new(),
         ).unwrap();
+
+        declare_queue(
+            &mut channel,
+            SECOND_QUEUE_NAME,
+            durable,
+        );
 
         destination = FANOUT_EXCHANGE_NAME;
     }
