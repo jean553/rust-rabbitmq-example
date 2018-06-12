@@ -15,14 +15,6 @@ Vagrant.configure(2) do |config|
     queue.vm.network "forwarded_port", guest: 15672, host: 8080
   end
 
-  config.vm.define "queue_2" do |queue|
-    queue.vm.provider "docker" do |d|
-      d.image = "rabbitmq"
-      d.name = "#{PROJECT}_queue_2"
-    end
-    queue.vm.network "forwarded_port", guest: 15672, host: 8081
-  end
-
   config.ssh.insert_key = false
   config.vm.define "dev", primary: true do |app|
     app.vm.provider "docker" do |d|
@@ -33,7 +25,6 @@ Vagrant.configure(2) do |config|
         "HOST_USER_UID" => Process.euid,
       }
       d.link "#{PROJECT}_queue_1:queue_1"
-      d.link "#{PROJECT}_queue_2:queue_2"
     end
 
     # libssl-dev is required for compilation with amqp
