@@ -59,16 +59,12 @@ fn declare_queue(
 ///
 /// Args:
 ///
-/// `durable` - Indicates if the queue messages are durable (if they are written on disk in case of queue failure/stop)
 /// `prefetch_count` - maximum non aknowledged messages a consumer can consume before refusing new messages
 ///
 /// Returns:
 ///
 /// (Session, Channel)
-fn create_session_and_channel(
-    durable: bool,
-    prefetch_count: u16,
-) -> (Session, Channel) {
+fn create_session_and_channel(prefetch_count: u16) -> (Session, Channel) {
 
     let mut session = Session::open_url(QUEUE_URL).unwrap();
     let mut channel = session.open_channel(1).unwrap();
@@ -123,10 +119,7 @@ fn get_queue_messages(
     fanout: bool,
 ) {
 
-    let mut _initializers = create_session_and_channel(
-        durable,
-        prefetch_count,
-    );
+    let mut _initializers = create_session_and_channel(prefetch_count);
     let _session = _initializers.0;
     let mut channel = _initializers.1;
 
@@ -303,10 +296,7 @@ fn main() {
         });
     }
 
-    let initializers = create_session_and_channel(
-        durable,
-        prefetch_count,
-    );
+    let initializers = create_session_and_channel(prefetch_count);
     let session = initializers.0;
     let mut channel = initializers.1;
 
