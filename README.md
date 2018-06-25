@@ -16,7 +16,11 @@ Simple Rust RabbitMQ usage example.
     * [Prefetch count](#prefetch-count)
  - [Exchanges](#exchanges)
     * [Fanout](#fanout)
+    * [Direct](#direct)
+    * [Topics](#topics)
+ - [Remote Procedure Call](#remote-procedure-call)
  - [Delete all queue messages](#delete-all-queue-messages)
+ - [Sources](#sources)
 
 ## Start the project
 
@@ -215,7 +219,30 @@ It is used to forward message to one specific queue or to all queues.
 ### Fanout
 
 The producer sends messages to the fanout exchange.
-The fanout exchange forward to all queues.
+The fanout exchange forwards every message to all queues.
+The relationship between the exchange and one queue is called a binding.
+
+### Direct
+
+Messages are routed to one queue according to their content
+(for instance, all messages with the *high* severity are sent into the first queue,
+all the others are sent into the second queue).
+
+This is allowed to bind multiple queues with the same binding key.
+
+### Topics
+
+Topic exchanges are like direct exchanges, but one queue can be bind to multiple words.
+For instance, it is possible to redirect all the messages with the pattern `*_some_message_*`
+(`*` means "one word") to one specific queue.
+
+## Remote Procedure Call
+
+In that kind of schema, there are usually two queues:
+ * one queue to redirect messages to the server,
+ * one queue to send back messages to the client (created by the client when it connects to the server)
+
+A `correlation id` is used to know which message from the callback queue is linked to what message that has been sent to the server queue.
 
 ## Delete all queue messages
 
@@ -225,3 +252,7 @@ connect into the queue container and execute the following command:
 ```sh
 rabbitmqctl purge_queue example_queue
 ```
+
+## Sources
+
+RabbitMQ tutorials (https://www.rabbitmq.com/tutorials)
